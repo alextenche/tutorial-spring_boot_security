@@ -12,8 +12,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 
-import static ro.tenche.securitytutorial.security.ApplicationUserRole.ADMIN;
-import static ro.tenche.securitytutorial.security.ApplicationUserRole.STUDENT;
+import static ro.tenche.securitytutorial.security.ApplicationUserRole.*;
 
 @Configuration
 @EnableWebSecurity
@@ -29,9 +28,10 @@ public class ApplicationSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
+                .csrf().disable()
                 .authorizeRequests()
-                .antMatchers("/", "index", "/css/*", "/js/*")
-                .permitAll()
+                .antMatchers("/", "index", "/css/*", "/js/*").permitAll()
+                .antMatchers("/api/**").hasAnyRole(STUDENT.name())
                 .anyRequest()
                 .authenticated()
                 .and()
@@ -53,6 +53,15 @@ public class ApplicationSecurityConfig extends WebSecurityConfigurerAdapter {
                 .roles(ADMIN.name())
                 .build();
 
-        return new InMemoryUserDetailsManager(alexTenche, admin);
+        UserDetails adminTrainee = User.builder()
+                .username("admin_trainee")
+                .password(passwordEncoder.encode("admin"))
+                .roles(ADMIN_TRAINEE.name())
+                .build();
+
+        return new InMemoryUserDetailsManager(
+                alexTenche,
+                admin,
+                adminTrainee);
     }
 }
