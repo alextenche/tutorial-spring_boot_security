@@ -3,6 +3,7 @@ package ro.tenche.securitytutorial.security;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
@@ -12,6 +13,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 
+import static ro.tenche.securitytutorial.security.ApplicationUserPermission.COURSE_WRITE;
 import static ro.tenche.securitytutorial.security.ApplicationUserRole.*;
 
 @Configuration
@@ -32,6 +34,10 @@ public class ApplicationSecurityConfig extends WebSecurityConfigurerAdapter {
                 .authorizeRequests()
                 .antMatchers("/", "index", "/css/*", "/js/*").permitAll()
                 .antMatchers("/api/**").hasAnyRole(STUDENT.name())
+                .antMatchers(HttpMethod.DELETE, "/management/api/**").hasAuthority(COURSE_WRITE.getPermission())
+                .antMatchers(HttpMethod.POST, "/management/api/**").hasAuthority(COURSE_WRITE.getPermission())
+                .antMatchers(HttpMethod.PUT, "/management/api/**").hasAuthority(COURSE_WRITE.getPermission())
+                .antMatchers(HttpMethod.GET, "/management/api/**").hasAnyRole(ADMIN.name(), ADMIN_TRAINEE.name())
                 .anyRequest()
                 .authenticated()
                 .and()
@@ -41,27 +47,31 @@ public class ApplicationSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     @Bean
     protected UserDetailsService userDetailsService() {
-        UserDetails alexTenche = User.builder()
-                .username("alex_tenche")
-                .password(passwordEncoder.encode("password"))
-                .roles(STUDENT.name())
+        UserDetails studentUser = User.builder()
+                .username("student")
+                .password(passwordEncoder.encode("pass"))
+//                .roles(STUDENT.name())
+                .authorities(STUDENT.getGrantedAuthorities())
                 .build();
 
-        UserDetails admin = User.builder()
-                .username("admin")
-                .password(passwordEncoder.encode("admin"))
-                .roles(ADMIN.name())
-                .build();
-
-        UserDetails adminTrainee = User.builder()
+        UserDetails adminTraineeUser = User.builder()
                 .username("admin_trainee")
-                .password(passwordEncoder.encode("admin"))
-                .roles(ADMIN_TRAINEE.name())
+                .password(passwordEncoder.encode("pass"))
+//                .roles(ADMIN_TRAINEE.name())
+                .authorities(ADMIN_TRAINEE.getGrantedAuthorities())
                 .build();
+
+        UserDetails adminUser = User.builder()
+                .username("admin")
+                .password(passwordEncoder.encode("pass"))
+//                .roles(ADMIN.name())
+                .authorities(ADMIN.getGrantedAuthorities())
+                .build();
+
 
         return new InMemoryUserDetailsManager(
-                alexTenche,
-                admin,
-                adminTrainee);
+                studentUser,
+                adminTraineeUser,
+                adminUser);
     }
 }
