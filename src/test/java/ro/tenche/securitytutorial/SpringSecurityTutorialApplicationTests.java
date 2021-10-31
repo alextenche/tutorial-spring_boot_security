@@ -8,6 +8,7 @@ class SpringSecurityTutorialApplicationTests {
 
 	@Test
 	void contextLoads() {
+		System.out.println("working");
 	}
 
 }
