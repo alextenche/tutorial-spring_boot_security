@@ -14,6 +14,10 @@ public class Student {
         return studentId;
     }
 
+    public String getStudentName() {
+        return studentName;
+    }
+
     @Override
     public String toString() {
         return "Student{" +
